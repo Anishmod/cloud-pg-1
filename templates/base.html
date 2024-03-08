@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ecommerce{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #f3f3f3;
+            padding-top: 20px;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+        .sidebar li a {
+            text-decoration: none;
+            color: #000;
+            font-weight: bold;
+        }
+        .sidebar li a:hover {
+            color: #007bff;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Ecommerce</h2>
+        <ul>
+            <li><a href="{{ url_for('get_products') }}">Products</a></li>
+            <li><a href="{{ url_for('get_users') }}">Users</a></li>
+            <li><a href="{{ url_for('get_products_bought') }}">Products Bought</a></li>
+        </ul>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.delete-btn').click(function() {
+                var row = $(this).closest('tr');
+                var id = row.data('id');
+                var url = $(this).data('url');
+                $.ajax({
+                    type: 'DELETE',
+                    url: url + '/' + id,
+                    success: function(response) {
+                        row.remove();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

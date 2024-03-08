@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Products Bought{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #f3f3f3;
+            padding-top: 20px;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+        .sidebar li a {
+            text-decoration: none;
+            color: #000;
+            font-weight: bold;
+        }
+        .sidebar li a:hover {
+            color: #007bff;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Ecommerce</h2>
+        <ul>
+            <li><a href="{{ url_for('get_products') }}">Products</a></li>
+            <li><a href="{{ url_for('get_users') }}">Users</a></li>
+            <li><a href="{{ url_for('get_products_bought') }}">Products Bought</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div id="error-alert" class="alert alert-danger" style="display: none;" role="alert"></div>
+        <h1>Products Bought</h1>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Product ID</th>
+                    <th>User Name</th>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Date of Purchase</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product_bought in products_bought %}
+                <tr data-id="{{ product_bought.id }}">
+                    <td>{{ product_bought.user_id }}</td>
+                    <td>{{ product_bought.product_id }}</td>
+                    <td>{{ product_bought.user_name }}</td>
+                    <td>{{ product_bought.product_name }}</td>
+                    <td>{{ product_bought.quantity }}</td>
+                    <td>{{ product_bought.date_of_purchase }}</td>
+                    <td><button class="btn btn-danger delete-btn" data-id="{{ product_bought.id }}">Delete</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <hr>
+        <h2>Add Products Bought</h2>
+        <form id="add-productsbought-form">
+            <div class="form-group">
+                <label for="user_id">User:</label>
+                <select class="form-control" id="user_id" name="user_id" required>
+                    {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.user_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="product_id">Product:</label>
+                <select class="form-control" id="product_id" name="product_id" required>
+                    {% for product in products %}
+                        <option value="{{ product.id }}">{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" required>
+            </div>
+            <div class="form-group">
+                <label for="date_of_purchase">Date of Purchase:</label>
+                <input type="date" class="form-control" id="date_of_purchase" name="date_of_purchase" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Products Bought</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#add-productsbought-form').submit(function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Get form data
+                var formData = {
+                    'user_id': $('#user_id').val(),
+                    'product_id': $('#product_id').val(),
+                    'quantity': $('#quantity').val(),
+                    'date_of_purchase': $('#date_of_purchase').val()
+                };
+
+                // Send POST request to Flask backend
+                $.ajax({
+                    type: 'POST',
+                    url: '/add_productsbought', // Update URL to match your Flask route
+                    data: JSON.stringify(formData), // Convert form data to JSON
+                    contentType: 'application/json',
+                    success: function(response) {
+                        // Refresh the page or update the products bought list as needed
+                        window.location.reload(); // Reload the page to show the updated products bought list
+                    },
+                    error: function(xhr, status, error) {
+                        // Display error message in a Bootstrap alert
+                        var errorMessage = xhr.responseText || 'An error occurred.';
+                        $('#error-alert').text('Error: ' + errorMessage).fadeIn();
+
+                        // Automatically scroll to the top of the page
+                        $('html, body').animate({scrollTop: 0}, 'fast');
+
+                        // Hide the alert after 5 seconds
+                        setTimeout(function() {
+                            $('#error-alert').fadeOut();
+                        }, 5000);
+                    }
+                });
+            });
+
+            $('.delete-btn').click(function() {
+                var row = $(this).closest('tr');
+                var id = row.data('id');
+                $.ajax({
+                    type: 'DELETE',
+                    url: '/delete_products_bought/' + id,
+                    success: function(response) {
+                        row.remove();
+                    },
+                    error: function(xhr, status, error) {
+                        // Display error message in a Bootstrap alert
+                        var errorMessage = xhr.responseText || 'An error occurred.';
+                        $('#error-alert').text('Error: ' + errorMessage).fadeIn();
+
+                        // Automatically scroll to the top of the page
+                        $('html, body').animate({scrollTop: 0}, 'fast');
+
+                        // Hide the alert after 5 seconds
+                        setTimeout(function() {
+                            $('#error-alert').fadeOut();
+                        }, 5000);
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
